@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Compile the program
+SOLC=$(which solc)
+ARGS="--evm-version petersburg --optimize --optimize-runs 200 --pretty-json --overwrite"
+
+OUTPUT_DIR="./output"
+
+if [[ $1 == clean ]]; then
+    echo "Cleaning..."
+    rm -rf $OUTPUT_DIR
+    exit 0
+fi
+
+if [ ! -f "$SOLC" ]; then
+    echo "Please install solc first"
+    exit 1
+fi
+
+if [ ! -d "$OUTPUT_DIR" ]; then
+    mkdir -p $OUTPUT_DIR
+fi
+
+function get_file_name() {
+    local file=$1
+    local file_name=$(basename $file)
+    local file_name=${file_name%.*}
+    echo $file_name
+}
+
+function compile_bin() {
+    local file=$1
+    local dir_name=$2
+    $SOLC $ARGS --bin -o $dir_name $file
+}
+
+function compile_abi() {
+    local file=$1
+    local dir_name=$2
+    $SOLC $ARGS --abi -o $dir_name $file
+}
+
+function compile_hex() {
+    local file=$1
+    local dir_name=$2
+    $SOLC $ARGS --bin-runtime -o $dir_name $file
+}
+
+function compile_storage_layout() {
+    local file=$1
+    local dir_name=$2
+    $SOLC $ARGS --storage-layout -o $dir_name $file
+}
+
+function compile_go() {
+    local file=$1
+    local dir_name=$2
+    local file_name=$3
+    local output_file="$dir_name/$file_name.go"
+    abigen --abi $dir_name/$file_name.abi --bin $dir_name/$file_name.bin --pkg $file_name --out $output_file
+}
+
+function compile_all() {
+    local file=$1
+    local filename=$(get_file_name $file)
+    local dir_name="$OUTPUT_DIR/$filename"
+
+    mkdir -p $dir_name
+
+    compile_bin $file $dir_name 1>/dev/null
+    compile_abi $file $dir_name 1>/dev/null
+    compile_hex $file $dir_name 1>/dev/null
+    compile_storage_layout $file $dir_name 1>/dev/null
+    compile_go $file $dir_name $filename 1>/dev/null
+
+    # Remove the files that not start with filename
+    find $dir_name -type f ! -name "$filename*" -delete
+}
+
+function compile_all_in_dir() {
+    local dir=$1
+    for file in $dir/*.sol; do
+        echo "Compiling [$file]..."
+        compile_all $file
+    done
+}
+
+compile_all_in_dir "./contracts"

@@ -54,8 +54,11 @@ contract WalletAccessControl is Pausable {
             _addrs.length <= 100,
             "Only 100 wallets can be processed at a time"
         );
-        for (uint256 i = 0; i < _addrs.length; i++) {
+        for (uint8 i = 0; i < _addrs.length; ) {
             _setStatus(_addrs[i], _status);
+            unchecked {
+                ++i;
+            }
         }
     }
 

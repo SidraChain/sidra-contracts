@@ -161,7 +161,10 @@ contract SidraToken is Pausable {
         emit Transfer(address(this), address(0), _mainFaucetAmount);
 
         // Emit TokenSupply event for consistency
-        emit TokenSupply(totalSupply + _amount + _mainFaucetAmount, block.timestamp);
+        emit TokenSupply(
+            totalSupply + _amount + _mainFaucetAmount,
+            block.timestamp
+        );
 
         // Emit MintedByOwner event to be transparent about the coin minting
 
@@ -212,7 +215,7 @@ contract SidraToken is Pausable {
         require(_addrs.length > 0, "Empty list");
         require(_addrs.length <= 100, "Only 100 miners can be added at a time");
 
-        for (uint256 i; i < _addrs.length;) {
+        for (uint8 i = 0; i < _addrs.length; ) {
             _addMiner(_addrs[i]);
             unchecked {
                 ++i;
@@ -228,7 +231,7 @@ contract SidraToken is Pausable {
             _addrs.length <= 100,
             "Only 100 miners can be removed at a time"
         );
-        for (uint256 i; i < _addrs.length;) {
+        for (uint8 i = 0; i < _addrs.length; ) {
             _removeMiner(_addrs[i]);
             unchecked {
                 ++i;

@@ -94,13 +94,13 @@ contract SidraToken is Pausable {
         /************* Convert function will convert Sidra Tokens to Coins *************/
         // Convert function will convert Sidra Tokens to Coins
         // 1 Sidra Token = 1 Coin
-        // As this is genesis smart contract the coin conversation is handled in consesus layer
+        // As this is genesis smart contract the coin conversation is handled in consensus layer
         /******************************************************************************/
 
         // Check if the sender has enough balances
         require(balances[msg.sender] >= _amount, "Insufficient balances");
 
-        // Check if the ammount is more than 14 and multiple of 14
+        // Check if the amount is more than 14 and multiple of 14
         require(
             _amount >= 14 ether && _amount % 14 ether == 0,
             "Amount must be more than or equal to 14 and multiple of 14"
@@ -109,7 +109,7 @@ contract SidraToken is Pausable {
         // Calculate the amount of main faucet tokens to be converted
         uint256 _mainFaucetAmount = _amount * 4;
 
-        // Update balancess
+        // Update balances
         balances[msg.sender] -= _amount;
         balances[address(this)] -= _mainFaucetAmount;
 
@@ -139,7 +139,7 @@ contract SidraToken is Pausable {
         /************* Mint function will mint Sidra Coins to a wallet *************/
         // These coins are exactly same as the coins minted by the miners before KYC
         // 1 Sidra Token = 1 Coin
-        // As this is genesis smart contract the coin conversation is handled in consesus layer
+        // As this is genesis smart contract the coin conversation is handled in consensus layer
         /******************************************************************************/
 
         // Check if the sender has enough balances
@@ -152,15 +152,15 @@ contract SidraToken is Pausable {
         // Update balances
         convertedSupply += _amount + _mainFaucetAmount;
 
-        // Emit events for consitency
+        // Emit events for consistency
         emit Transfer(address(0), _to, _amount);
         emit Transfer(address(0), address(this), _mainFaucetAmount);
 
-        // Emit Transfer event for consitency
+        // Emit Transfer event for consistency
         emit Transfer(_to, address(0), _amount);
         emit Transfer(address(this), address(0), _mainFaucetAmount);
 
-        // Emit TokenSupply event for consitency
+        // Emit TokenSupply event for consistency
         emit TokenSupply(totalSupply + _amount + _mainFaucetAmount, block.timestamp);
 
         // Emit MintedByOwner event to be transparent about the coin minting
@@ -212,8 +212,11 @@ contract SidraToken is Pausable {
         require(_addrs.length > 0, "Empty list");
         require(_addrs.length <= 100, "Only 100 miners can be added at a time");
 
-        for (uint256 i = 0; i < _addrs.length; i++) {
+        for (uint256 i; i < _addrs.length;) {
             _addMiner(_addrs[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -225,8 +228,11 @@ contract SidraToken is Pausable {
             _addrs.length <= 100,
             "Only 100 miners can be removed at a time"
         );
-        for (uint256 i = 0; i < _addrs.length; i++) {
+        for (uint256 i; i < _addrs.length;) {
             _removeMiner(_addrs[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 }

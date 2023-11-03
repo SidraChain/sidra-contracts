@@ -15,7 +15,7 @@ contract Owner {
     }
 
     modifier onlySuperOwner() {
-        require(msg.sender == superOwner, "You are not the super owner");
+        _checkSuperOwner();
         _;
     }
 
@@ -23,6 +23,10 @@ contract Owner {
         require(pendingOwner != address(0), "No pending owner");
         require(msg.sender == pendingOwner, "You are not the pending owner");
         _;
+    }
+
+    function _checkSuperOwner() internal view {
+        require(msg.sender == superOwner, "You are not the super owner");
     }
 
     function transferOwnership(address _newOwner) external onlySuperOwner {

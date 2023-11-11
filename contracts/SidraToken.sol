@@ -57,9 +57,12 @@ contract SidraToken is Pausable {
         _;
     }
 
-    modifier onlyNotBlacklisted() {
+    modifier OnlyWhitelisted() {
         // It means greylisted and whitelisted wallets can use this function
-        require(!wac.isBlacklisted(msg.sender), "Your wallet is blacklisted");
+        require(
+            !wac.isWhitelisted(msg.sender),
+            "Your wallet is not whitelisted"
+        );
         _;
     }
 
@@ -88,9 +91,7 @@ contract SidraToken is Pausable {
         emit TokenSupply(totalSupply, block.timestamp);
     }
 
-    function convert(
-        uint256 _amount
-    ) external whenNotPaused onlyNotBlacklisted {
+    function convert(uint256 _amount) external whenNotPaused OnlyWhitelisted {
         /************* Convert function will convert Sidra Tokens to Coins *************/
         // Convert function will convert Sidra Tokens to Coins
         // 1 Sidra Token = 1 Coin

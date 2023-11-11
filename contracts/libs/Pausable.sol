@@ -4,24 +4,35 @@ import "../Owner.sol";
 
 contract Pausable {
     Owner public owner;
-
     bool public paused;
 
     event Paused(uint256 indexed _at);
     event Unpaused(uint256 indexed _at);
 
-    modifier onlyOwner() {
+    function _onlyOwner() internal view {
         require(owner.owner() == msg.sender, "You are not the owner");
+    }
+
+    function _whenNotPaused() internal view {
+        require(!paused, "Contract is paused");
+    }
+
+    function _whenPaused() internal view {
+        require(paused, "Contract is not paused");
+    }
+
+    modifier onlyOwner() {
+        _onlyOwner();
         _;
     }
 
     modifier whenNotPaused() {
-        require(!paused, "Contract is paused");
+        _whenNotPaused();
         _;
     }
 
     modifier whenPaused() {
-        require(paused, "Contract is not paused");
+        _whenPaused();
         _;
     }
 

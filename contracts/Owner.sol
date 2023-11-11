@@ -4,28 +4,31 @@ pragma solidity ^0.8.0;
 contract Owner {
     address public owner;
     address public superOwner;
+    // TODO: pendingSuperOwner
     address public pendingOwner;
 
     event SuperOwnerChanged(address indexed _old, address indexed _new);
     event OwnerChanged(address indexed _old, address indexed _new);
 
+    function _onlyOwner() internal view {
+        require(owner == msg.sender, "You are not the owner");
+    }
+
+    function _onlySuperOwner() internal view {
+        require(superOwner == msg.sender, "You are not the super owner");
+    }
+
     modifier onlyOwner() {
-        require(msg.sender == owner, "You are not the owner");
+        _onlyOwner();
         _;
     }
 
     modifier onlySuperOwner() {
-        require(msg.sender == superOwner, "You are not the super owner");
+        _onlySuperOwner();
         _;
     }
 
-    modifier onlyPendingOwner() {
-        require(pendingOwner != address(0), "No pending owner");
-        require(msg.sender == pendingOwner, "You are not the pending owner");
-        _;
-    }
-
-    function transferOwnership(address _newOwner) external onlySuperOwner {
+    function transferSuperOwnership(address _newOwner) external onlySuperOwner {
         require(_newOwner != owner, "You are already the owner");
         require(_newOwner != address(0), "New owner address cannot be zero");
         pendingOwner = _newOwner;
@@ -38,13 +41,16 @@ contract Owner {
         owner = _newOwner;
     }
 
-    function acceptOwnership() external onlyPendingOwner {
+    function acceptSuperOwnership() external {
+        require(pendingOwner != address(0), "No pending owner");
+        require(pendingOwner == msg.sender, "You are not the pending owner");
+
         emit SuperOwnerChanged(owner, pendingOwner);
         superOwner = pendingOwner;
         delete pendingOwner;
     }
 
-    function revertPendingOwnership() external onlySuperOwner {
+    function revertPendingSuperOwnership() external onlySuperOwner {
         require(pendingOwner != address(0), "No pending owner");
         delete pendingOwner;
     }

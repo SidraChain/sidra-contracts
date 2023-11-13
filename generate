@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Python Check web3 is installed
+if ! $(python3 -c "import web3" 2>/dev/null); then
+    echo "web3 is not installed"
+    echo "Please install web3"
+    exit 1
+fi
+
+./compile clean
+./compile
+
+python3 -c "from generator import generate_genesis; generate_genesis()"

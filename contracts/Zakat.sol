@@ -3,7 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./libs/Pausable.sol";
 
-contract MainFaucet is Pausable {
+contract Zakat is Pausable {
+    uint256 public totalReceived;
+    uint256 public totalSent;
+
     // Mapping to track the amount of coins sent to each wallet
     mapping(address => uint256) public sent;
 
@@ -36,6 +39,7 @@ contract MainFaucet is Pausable {
         _recipient.transfer(_amount);
         // Track the amount of coins sent to the wallet
         sent[_recipient] += _amount;
+        totalSent += _amount;
         // Track the number of times the wallet has been used
         emit Sent(_recipient, _amount, block.timestamp);
     }
@@ -44,6 +48,7 @@ contract MainFaucet is Pausable {
     receive() external payable whenNotPaused {
         // Track the coins received by the contract
         received[msg.sender] += msg.value;
+        totalReceived += msg.value;
         // Track the amount of coins received by the contract
         emit Received(msg.sender, msg.value, block.timestamp);
     }

@@ -74,7 +74,7 @@ class Contract:
         return {
             "code": self.code,
             "storage": self.storage,
-            "balance": self.balance,
+            "balance": str(self.balance),
         }
 
     def __str__(self):

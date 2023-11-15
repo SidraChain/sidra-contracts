@@ -22,23 +22,10 @@ contract WalletAccessControl is Pausable {
     mapping(address => Status) public status;
     mapping(address => bool) public blackListed;
 
-    // Mapping of countries pool
-    mapping(uint256 => mapping(address => bool)) public pools;
-
     // These events are used to track the status of a wallet
     event StatusChanged(
         address indexed _wallet,
         Status indexed _status,
-        uint256 indexed _at
-    );
-    event AddedToPool(
-        uint256 indexed _poolId,
-        address indexed _wallet,
-        uint256 indexed _at
-    );
-    event RemovedFromPool(
-        uint256 indexed _poolId,
-        address indexed _wallet,
         uint256 indexed _at
     );
 
@@ -65,6 +52,11 @@ contract WalletAccessControl is Pausable {
         if (status[_addr] == Status.RECEIVE_GREYLISTED) {
             unchecked {
                 --receiveGreylistCount;
+            }
+        }
+        if (status[_addr] == Status.POOL_GREYLISTED) {
+            unchecked {
+                --poolGreylistCount;
             }
         }
     }
@@ -131,82 +123,6 @@ contract WalletAccessControl is Pausable {
         _setStatus(_addr, _status);
     }
 
-    function _addInPool(uint256 _poolId, address _addr) internal {
-        if (pools[_poolId][_addr]) {
-            return;
-        }
-        if (_poolId == 0) {
-            return;
-        }
-        pools[_poolId][_addr] = true;
-        unchecked {
-            ++poolGreylistCount;
-        }
-        emit AddedToPool(_poolId, _addr, block.timestamp);
-    }
-
-    function _removeFromPool(uint256 _poolId, address _addr) internal {
-        if (!pools[_poolId][_addr]) {
-            return;
-        }
-        if (_poolId == 0) {
-            return;
-        }
-        delete pools[_poolId][_addr];
-        unchecked {
-            --poolGreylistCount;
-        }
-        emit RemovedFromPool(_poolId, _addr, block.timestamp);
-    }
-
-    function addInPool(
-        uint256 _poolId,
-        address _addr
-    ) external whenNotPaused onlyOwner {
-        _addInPool(_poolId, _addr);
-    }
-
-    function removeFromPool(
-        uint256 _poolId,
-        address _addr
-    ) external whenNotPaused onlyOwner {
-        _removeFromPool(_poolId, _addr);
-    }
-
-    function batchAddInPool(
-        uint256 _poolId,
-        address[] calldata _addrs
-    ) external whenNotPaused onlyOwner {
-        require(_addrs.length > 0, "Empty list");
-        require(
-            _addrs.length <= 100,
-            "Only 100 wallets can be processed at a time"
-        );
-        for (uint8 i = 0; i < _addrs.length; ) {
-            _addInPool(_poolId, _addrs[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function batchRemoveFromPool(
-        uint256 _poolId,
-        address[] calldata _addrs
-    ) external whenNotPaused onlyOwner {
-        require(_addrs.length > 0, "Empty list");
-        require(
-            _addrs.length <= 100,
-            "Only 100 wallets can be processed at a time"
-        );
-        for (uint8 i = 0; i < _addrs.length; ) {
-            _removeFromPool(_poolId, _addrs[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     function batchSetWalletStatus(
         address[] calldata _addrs,
         Status _status
@@ -244,10 +160,7 @@ contract WalletAccessControl is Pausable {
         return status[_addr] == Status.RECEIVE_GREYLISTED;
     }
 
-    function isInPool(
-        uint256 _poolId,
-        address _addr
-    ) public view returns (bool) {
-        return pools[_poolId][_addr];
+    function isPoolGreylisted(address _addr) public view returns (bool) {
+        return status[_addr] == Status.POOL_GREYLISTED;
     }
 }

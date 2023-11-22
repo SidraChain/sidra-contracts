@@ -5,6 +5,7 @@ import "./WalletAccessControl.sol";
 
 contract SidraToken is Pausable {
     WalletAccessControl public wac;
+    address public faucet;
 
     string public symbol = "ST";
     string public name = "Sidra Token";
@@ -57,10 +58,10 @@ contract SidraToken is Pausable {
         _;
     }
 
-    modifier OnlyWhitelisted() {
+    modifier OnlyNotBlacklisted() {
         // It means greylisted and whitelisted wallets can use this function
         require(
-            !wac.isWhitelisted(msg.sender),
+            !wac.isBlacklisted(msg.sender),
             "Your wallet is not whitelisted"
         );
         _;
@@ -91,11 +92,11 @@ contract SidraToken is Pausable {
         emit TokenSupply(totalSupply, block.timestamp);
     }
 
-    function convert(uint256 _amount) external whenNotPaused OnlyWhitelisted {
+    function convert(
+        uint256 _amount
+    ) external whenNotPaused OnlyNotBlacklisted {
         /************* Convert function will convert Sidra Tokens to Coins *************/
         // Convert function will convert Sidra Tokens to Coins
-        // 1 Sidra Token = 1 Coin
-        // As this is genesis smart contract the coin conversation is handled in consensus layer
         /******************************************************************************/
 
         // Check if the sender has enough balances
@@ -109,6 +110,13 @@ contract SidraToken is Pausable {
 
         // Calculate the amount of main faucet tokens to be converted
         uint256 _mainFaucetAmount = _amount * 4;
+
+        (bool success, ) = payable(faucet).call{value: _mainFaucetAmount}("");
+        require(success, "Failed to send ether");
+        /*** DO NOT CHANGE STATE BEFORE THIS LINE ***/
+
+        // Transfer converted coins to the sender
+        payable(msg.sender).transfer(_amount);
 
         // Update balances
         balances[msg.sender] -= _amount;
@@ -133,14 +141,18 @@ contract SidraToken is Pausable {
         emit ConvertedSupply(convertedSupply, block.timestamp);
     }
 
+    receive() external payable whenNotPaused {
+        // This function is used to recieve ether from the faucet
+        // This function is used to recieve ether from the faucet
+    }
+
     function mint(
-        address _to,
+        address payable _to,
         uint256 _amount
     ) external whenNotPaused onlyOwner {
         /************* Mint function will mint Sidra Coins to a wallet *************/
         // These coins are exactly same as the coins minted by the miners before KYC
         // 1 Sidra Token = 1 Coin
-        // As this is genesis smart contract the coin conversation is handled in consensus layer
         /******************************************************************************/
 
         // Check if the sender has enough balances
@@ -149,6 +161,12 @@ contract SidraToken is Pausable {
 
         // Calculate main faucet amount
         uint256 _mainFaucetAmount = _amount * 4;
+
+        (bool success, ) = payable(faucet).call{value: _mainFaucetAmount}("");
+        require(success, "Failed to send ether");
+        /*** DO NOT CHANGE STATE BEFORE THIS LINE ***/
+
+        _to.transfer(_amount);
 
         // Update balances
         convertedSupply += _amount + _mainFaucetAmount;
@@ -238,5 +256,11 @@ contract SidraToken is Pausable {
                 ++i;
             }
         }
+    }
+
+    function changeFaucet(address _addr) external whenNotPaused onlyOwner {
+        require(_addr != address(0), "Invalid address");
+        require(_addr != faucet, "Same address");
+        faucet = _addr;
     }
 }

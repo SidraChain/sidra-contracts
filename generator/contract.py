@@ -8,15 +8,18 @@ OUTPUT_DIR = Path(__file__).parent.parent / "output"
 
 
 class Contract:
-    def __init__(self, name: str, address: str, balance: int = 0):
+    def __init__(self, name: str, address: str, balance: int | str = 0):
         self.name = name
         self.address = address
         if len(address) == 40:
             self.address = "0x" + address
+        if balance == "max":
+            balance = hex(2**256 - 1)
+        else:
+            balance = int(balance)
+            if balance > 0:
+                balance = w3.to_wei(balance, "ether")
         self.balance = balance
-        if self.balance > 0:
-            self.balance = w3.to_wei(balance, "ether")
-
         self.path = OUTPUT_DIR / f"{name}"
         self.code = "0x" + self.read_bin_runtime()
         self.layout = self.read_storage()["storage"]

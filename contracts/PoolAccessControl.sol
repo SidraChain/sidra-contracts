@@ -23,10 +23,11 @@ contract PoolAccessControl is Pausable {
         uint256 _poolId
     ) internal view returns (bool) {
         uint256[] storage pool = pools[_addr];
-        if (pool.length == 0) {
+        uint256 poolLength = pool.length;
+        if (poolLength == 0) {
             return false;
         }
-        for (uint256 i = 0; i < pool.length; ) {
+        for (uint256 i = 0; i < poolLength; ) {
             if (pool[i] == _poolId) {
                 return true;
             }
@@ -50,9 +51,10 @@ contract PoolAccessControl is Pausable {
             return;
         }
         uint256[] storage pool = pools[_addr];
-        for (uint256 i = 0; i < pool.length; ) {
+        uint256 poolLength = pool.length;
+        for (uint256 i = 0; i < poolLength; ) {
             if (pool[i] == _poolId) {
-                pool[i] = pool[pool.length - 1];
+                pool[i] = pool[poolLength - 1];
                 pool.pop();
                 emit RemovedFromPool(_poolId, _addr, block.timestamp);
                 return;
@@ -65,10 +67,11 @@ contract PoolAccessControl is Pausable {
 
     function _removeFromAllPools(address _addr) internal {
         uint256[] storage pool = pools[_addr];
-        if (pool.length == 0) {
+        uint256 poolLength = pool.length;
+        if (poolLength == 0) {
             return;
         }
-        for (uint256 i = 0; i < pool.length; ) {
+        for (uint256 i = 0; i < poolLength; ) {
             emit RemovedFromPool(pool[i], _addr, block.timestamp);
             unchecked {
                 ++i;
@@ -164,11 +167,13 @@ contract PoolAccessControl is Pausable {
     ) external view returns (bool) {
         uint256[] storage poolA = pools[_addrA];
         uint256[] storage poolB = pools[_addrB];
-        if (poolA.length == 0 || poolB.length == 0) {
+        uint256 poolA_length = poolA.length;
+        uint256 poolB_length = poolB.length;
+        if (poolA_length == 0 || poolB_length == 0) {
             return false;
         }
-        for (uint256 i = 0; i < poolA.length; ) {
-            for (uint256 j = 0; j < poolB.length; ) {
+        for (uint256 i = 0; i < poolA_length; ) {
+            for (uint256 j = 0; j < poolB_length; ) {
                 if (poolA[i] == poolB[j]) {
                     return true;
                 }

@@ -98,6 +98,15 @@ contract WalletAccessControl is Pausable {
         emit StatusChanged(_addr, Status.RECEIVE_GREYLISTED, block.timestamp);
     }
 
+    function _setPoolGreylisted(address _addr) internal {
+        _resetCounter(_addr);
+        status[_addr] = Status.POOL_GREYLISTED;
+        unchecked {
+            ++poolGreylistCount;
+        }
+        emit StatusChanged(_addr, Status.POOL_GREYLISTED, block.timestamp);
+    }
+
     function _setStatus(address _addr, Status _status) internal {
         if (status[_addr] == _status) {
             return;
@@ -113,6 +122,9 @@ contract WalletAccessControl is Pausable {
         }
         if (_status == Status.RECEIVE_GREYLISTED) {
             return _setReceivingGreylisted(_addr);
+        }
+        if (_status == Status.POOL_GREYLISTED) {
+            return _setPoolGreylisted(_addr);
         }
     }
 

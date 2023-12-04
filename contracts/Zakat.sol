@@ -27,16 +27,25 @@ contract Zakat is Pausable {
         uint256 indexed _at
     );
 
+    function _safeTransfer(address _to, uint256 _amount) internal {
+        (bool success, ) = payable(_to).call{value: _amount}("");
+        require(success, "Transfer failed");
+    }
+
     // Function to transfer coins from the contract to a recipient
     function send(
-        address payable _recipient,
+        address _recipient,
         uint256 _amount
     ) external whenNotPaused onlyOwner {
         require(
             address(this).balance >= _amount,
             "Not enough balance in the contract"
         );
-        _recipient.transfer(_amount);
+        require(_amount > 0, "Invalid amount");
+
+        // Transfer the coins to the recipient
+        _safeTransfer(_recipient, _amount);
+
         // Track the amount of coins sent to the wallet
         sent[_recipient] += _amount;
         totalSent += _amount;

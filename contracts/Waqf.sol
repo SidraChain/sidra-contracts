@@ -17,6 +17,11 @@ contract Waqf is Pausable {
         uint256 indexed _at
     );
 
+    function _safeTransfer(address _to, uint256 _amount) internal {
+        (bool success, ) = payable(_to).call{value: _amount}("");
+        require(success, "Transfer failed");
+    }
+
     // Fall back function to receive coins into the contract
     receive() external payable whenNotPaused {
         // Track the coins received by the contract
@@ -26,7 +31,7 @@ contract Waqf is Pausable {
         amount += msg.value;
 
         // Transfer the coins to the zero address to burn them
-        payable(0).transfer(msg.value);
+        _safeTransfer(address(0), msg.value);
 
         // Track the amount of coins received by the contract
         emit Received(msg.sender, msg.value, block.timestamp);

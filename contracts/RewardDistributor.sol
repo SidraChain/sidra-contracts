@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./libs/Pausable.sol";
 
 contract RewardDistributor is Pausable {
-    address payable public faucet;
+    address public faucet;
     uint256 public totalEvents;
     uint256 public totalSupply;
     uint256 public totalFaucetSupply;
@@ -29,13 +29,13 @@ contract RewardDistributor is Pausable {
         return events[_wallet] * 2 ether;
     }
 
-    function _safeFaucetTransfer(uint256 _amount) internal {
-        (bool success, ) = faucet.call{value: _amount}("");
+    function _safeTransfer(address _to, uint256 _amount) internal {
+        (bool success, ) = payable(_to).call{value: _amount}("");
         require(success, "Transfer failed");
     }
 
     function distribute(
-        address payable _wallet,
+        address _wallet,
         uint256 _events
     ) external whenNotPaused onlyOwner {
         require(_wallet != address(0), "Invalid wallet address");
@@ -44,8 +44,8 @@ contract RewardDistributor is Pausable {
         uint256 _amount = _events * 2 ether;
         uint256 _faucetAmount = _events * 8 ether;
 
-        _safeFaucetTransfer(_faucetAmount);
-        _wallet.transfer(_amount);
+        _safeTransfer(faucet, _faucetAmount);
+        _safeTransfer(_wallet, _amount);
 
         totalEvents += _events;
         events[_wallet] += _events;
@@ -57,9 +57,7 @@ contract RewardDistributor is Pausable {
         emit SupplyUpdated(totalSupply, totalFaucetSupply, block.timestamp);
     }
 
-    function setFaucet(
-        address payable _faucet
-    ) external whenNotPaused onlyOwner {
+    function setFaucet(address _faucet) external whenNotPaused onlyOwner {
         require(_faucet != address(0), "Invalid faucet address");
         require(_faucet != faucet, "Faucet already set");
         faucet = _faucet;

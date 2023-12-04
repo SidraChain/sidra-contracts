@@ -19,13 +19,13 @@ PAC_CONTRACT = Contract(
     name="PoolAccessControl",
     address="0x0000000000000000000000000000000000000030"
 )
-SIDRA_TOKEN_CONTRACT = Contract(
-    name="SidraToken",
+REWARD_DISTRIBUTOR_CONTRACT = Contract(
+    name="RewardDistributor",
     address="0x0000000000000000000000000000000000000040",
     balance='max'
 )
-MAIN_FAUCET_CONTRACT = Contract(
-    name="MainFaucet",
+FAUCET_CONTRACT = Contract(
+    name="Faucet",
     address="0x0000000000000000000000000000000000000050",
     balance=10_000_000  # 10M
 )
@@ -61,13 +61,12 @@ def generate_genesis():
     PAC_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
     genesis.add_contract(PAC_CONTRACT)
 
-    SIDRA_TOKEN_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
-    SIDRA_TOKEN_CONTRACT.set_value("wac", WAC_CONTRACT.address)
-    SIDRA_TOKEN_CONTRACT.set_value("faucet", MAIN_FAUCET_CONTRACT.address)
-    genesis.add_contract(SIDRA_TOKEN_CONTRACT)
+    REWARD_DISTRIBUTOR_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
+    REWARD_DISTRIBUTOR_CONTRACT.set_value("faucet", FAUCET_CONTRACT.address)
+    genesis.add_contract(REWARD_DISTRIBUTOR_CONTRACT)
 
-    MAIN_FAUCET_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
-    genesis.add_contract(MAIN_FAUCET_CONTRACT)
+    FAUCET_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
+    genesis.add_contract(FAUCET_CONTRACT)
 
     WAQF_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
     genesis.add_contract(WAQF_CONTRACT)

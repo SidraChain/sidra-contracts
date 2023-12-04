@@ -7,6 +7,8 @@ contract PoolAccessControl is Pausable {
     // Mapping of list of wallets in a pool
     mapping(address => uint256[]) public pools;
 
+    uint8 public constant MAX_POOLS = 32; // Maximum number of pools
+
     event AddedToPool(
         uint256 indexed _poolId,
         address indexed _wallet,
@@ -20,14 +22,14 @@ contract PoolAccessControl is Pausable {
 
     function _isInPool(
         address _addr,
-        uint256 _poolId
+        uint256 _poolId,
+        uint256 _poolLength
     ) internal view returns (bool) {
         uint256[] storage pool = pools[_addr];
-        uint256 poolLength = pool.length;
-        if (poolLength == 0) {
+        if (_poolLength == 0) {
             return false;
         }
-        for (uint256 i = 0; i < poolLength; ) {
+        for (uint256 i = 0; i < _poolLength; ) {
             if (pool[i] == _poolId) {
                 return true;
             }
@@ -39,7 +41,11 @@ contract PoolAccessControl is Pausable {
     }
 
     function _addInPool(uint256 _poolId, address _addr) internal {
-        if (_isInPool(_addr, _poolId)) {
+        uint256 poolLength = pools[_addr].length;
+        if (poolLength >= MAX_POOLS) {
+            return;
+        }
+        if (_isInPool(_addr, _poolId, poolLength)) {
             return;
         }
         pools[_addr].push(_poolId);
@@ -47,11 +53,11 @@ contract PoolAccessControl is Pausable {
     }
 
     function _removeFromPool(uint256 _poolId, address _addr) internal {
-        if (!_isInPool(_addr, _poolId)) {
+        uint256 poolLength = pools[_addr].length;
+        if (!_isInPool(_addr, _poolId, poolLength)) {
             return;
         }
         uint256[] storage pool = pools[_addr];
-        uint256 poolLength = pool.length;
         for (uint256 i = 0; i < poolLength; ) {
             if (pool[i] == _poolId) {
                 pool[i] = pool[poolLength - 1];
@@ -154,7 +160,8 @@ contract PoolAccessControl is Pausable {
         address _addr,
         uint256 _poolId
     ) public view returns (bool) {
-        return _isInPool(_addr, _poolId);
+        uint256 poolLength = pools[_addr].length;
+        return _isInPool(_addr, _poolId, poolLength);
     }
 
     function getPoolCount(address _addr) external view returns (uint256) {

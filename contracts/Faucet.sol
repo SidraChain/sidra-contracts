@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./libs/Pausable.sol";
 
-contract MainFaucet is Pausable {
+contract Faucet is Pausable {
     // Mapping to track the amount of coins sent to each wallet
     mapping(address => uint256) public sent;
 

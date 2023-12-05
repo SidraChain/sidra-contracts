@@ -11,6 +11,7 @@ contract RewardDistributor is Pausable {
     uint256 public totalFaucetSupply;
     mapping(address => uint256) public coins;
     mapping(address => uint256) public events;
+    mapping(address => uint256) public lastEvent;
 
     event Distributed(
         address indexed _wallet,
@@ -27,6 +28,9 @@ contract RewardDistributor is Pausable {
         uint256 indexed _totalFaucetSupply,
         uint256 indexed _at
     );
+
+    event FaucetChanged(address indexed _faucet, uint256 indexed _at);
+    event FeesChanged(uint256 indexed _fees, uint256 indexed _at);
 
     function eventsOf(address _wallet) external view returns (uint256) {
         return events[_wallet];
@@ -46,20 +50,30 @@ contract RewardDistributor is Pausable {
         uint256 _events
     ) external whenNotPaused onlyOwner {
         require(_wallet != address(0), "Invalid wallet address");
-        require(_events > 0, "Invalid events amount");
+        require(_events >= 7 && _events <= 90, "Invalid event count");
+        require(
+            block.timestamp - lastEvent[_wallet] >= 7 days,
+            "Wallet already used this week"
+        );
 
         uint256 _amount = (_events * 2 ether) - fees;
-        uint256 _faucetAmount = (_events * 8 ether) + fees;
+        uint256 _faucetAmount = (_events * 8 ether);
 
         _safeTransfer(faucet, _faucetAmount);
         _safeTransfer(_wallet, _amount);
+        _safeTransfer(msg.sender, fees);
+
+        lastEvent[_wallet] = block.timestamp;
 
         totalEvents += _events;
         coins[_wallet] += _amount;
         events[_wallet] += _events;
 
+        coins[faucet] += _faucetAmount;
+        coins[msg.sender] += fees;
+
         totalFaucetSupply += _faucetAmount;
-        totalSupply += _amount + _faucetAmount;
+        totalSupply += _amount + _faucetAmount + fees;
 
         emit Received(_wallet, _amount, block.timestamp);
         emit Received(faucet, _faucetAmount, block.timestamp);
@@ -72,11 +86,13 @@ contract RewardDistributor is Pausable {
         require(_faucet != address(0), "Invalid faucet address");
         require(_faucet != faucet, "Faucet already set");
         faucet = _faucet;
+        emit FaucetChanged(_faucet, block.timestamp);
     }
 
     function setFees(uint256 _fees) external whenNotPaused onlyOwner {
         require(_fees > 0, "Invalid fees amount");
         require(_fees != fees, "Fees already set");
         fees = _fees;
+        emit FeesChanged(_fees, block.timestamp);
     }
 }

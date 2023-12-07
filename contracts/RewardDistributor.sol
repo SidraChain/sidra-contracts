@@ -5,9 +5,9 @@ import "./libs/Pausable.sol";
 
 contract RewardDistributor is Pausable {
     address public faucet;
+    uint256 public fees; // 0.01 ether must be added in genesis as for genesis storage is set to 0 by default
     uint256 public totalEvents;
     uint256 public totalSupply;
-    uint256 public fees = 0.1 ether;
     uint256 public totalFaucetSupply;
     mapping(address => uint256) public coins;
     mapping(address => uint256) public events;
@@ -38,6 +38,10 @@ contract RewardDistributor is Pausable {
 
     function coinsOf(address _wallet) external view returns (uint256) {
         return coins[_wallet];
+    }
+
+    function lastEventOf(address _wallet) external view returns (uint256) {
+        return lastEvent[_wallet];
     }
 
     function _safeTransfer(address _to, uint256 _amount) internal {

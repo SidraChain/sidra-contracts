@@ -63,6 +63,7 @@ def generate_genesis():
 
     REWARD_DISTRIBUTOR_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
     REWARD_DISTRIBUTOR_CONTRACT.set_value("faucet", FAUCET_CONTRACT.address)
+    REWARD_DISTRIBUTOR_CONTRACT.set_value("fees", int(0.1 * 1e18))
     genesis.add_contract(REWARD_DISTRIBUTOR_CONTRACT)
 
     FAUCET_CONTRACT.set_value("owner", OWNER_CONTRACT.address)

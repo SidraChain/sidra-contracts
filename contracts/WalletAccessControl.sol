@@ -12,15 +12,15 @@ contract WalletAccessControl is Pausable {
     uint256 public poolGreylistCount; // 0 - default value
 
     enum Status {
-        BLACKLISTED, // 0
+        UNLISTED, // 0
         WHITELISTED, // 1
-        SEND_GREYLISTED, // 2
-        RECEIVE_GREYLISTED, // 3
-        POOL_GREYLISTED // 4
+        BLACKLISTED, // 2
+        SEND_GREYLISTED, // 3
+        RECEIVE_GREYLISTED, // 4
+        POOL_GREYLISTED // 5
     }
 
     mapping(address => Status) public status;
-    mapping(address => bool) public blackListed;
 
     // These events are used to track the status of a wallet
     event StatusChanged(
@@ -30,11 +30,13 @@ contract WalletAccessControl is Pausable {
     );
 
     function _resetCounter(address _addr) internal {
-        if (status[_addr] == Status.BLACKLISTED && blackListed[_addr]) {
+        if (status[_addr] == Status.UNLISTED) {
+            return;
+        }
+        if (status[_addr] == Status.BLACKLISTED) {
             unchecked {
                 --blackListCount;
             }
-            delete blackListed[_addr];
             return;
         }
         if (status[_addr] == Status.WHITELISTED) {
@@ -61,10 +63,15 @@ contract WalletAccessControl is Pausable {
         }
     }
 
-    function _setBlacklisted(address _addr) internal {
+    function _setUnlisted(address _addr) internal {
         _resetCounter(_addr);
         delete status[_addr];
-        blackListed[_addr] = true;
+        emit StatusChanged(_addr, Status.UNLISTED, block.timestamp);
+    }
+
+    function _setBlacklisted(address _addr) internal {
+        _resetCounter(_addr);
+        status[_addr] = Status.BLACKLISTED;
         unchecked {
             ++blackListCount;
         }
@@ -111,6 +118,9 @@ contract WalletAccessControl is Pausable {
         if (status[_addr] == _status) {
             return;
         }
+        if (_status == Status.UNLISTED) {
+            return _setUnlisted(_addr);
+        }
         if (_status == Status.BLACKLISTED) {
             return _setBlacklisted(_addr);
         }
@@ -153,7 +163,9 @@ contract WalletAccessControl is Pausable {
     }
 
     function isBlacklisted(address _addr) public view returns (bool) {
-        return status[_addr] == Status.BLACKLISTED;
+        return
+            status[_addr] == Status.BLACKLISTED ||
+            status[_addr] == Status.UNLISTED;
     }
 
     function isWhitelisted(address _addr) public view returns (bool) {

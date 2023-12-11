@@ -87,15 +87,15 @@ contract PoolAccessControl is Pausable {
     }
 
     function addInPool(
-        uint256 _poolId,
-        address _addr
+        address _addr,
+        uint256 _poolId
     ) external whenNotPaused onlyOwner {
         _addInPool(_poolId, _addr);
     }
 
     function removeFromPool(
-        uint256 _poolId,
-        address _addr
+        address _addr,
+        uint256 _poolId
     ) external whenNotPaused onlyOwner {
         _removeFromPool(_poolId, _addr);
     }

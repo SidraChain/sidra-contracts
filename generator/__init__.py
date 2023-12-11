@@ -1,11 +1,11 @@
 from .genesis import GenesisGenerator
 from .contract import Contract
 
-OWNER_ADDRESS = "0xEB70231e39A0282974B8CFB37F63FcD795F3beFb"
-SUPER_OWNER_ADDRESS = "0xEB70231e39A0282974B8CFB37F63FcD795F3beFb"
+OWNER_ADDRESS = "0xf21CD875472D214fEC9a9195E160Cd642999942c"
+SUPER_OWNER_ADDRESS = "0xB4c9F001DC6C224dA383682af73Ae084736C7FCF"
 
-MINER_ADDRESS = "0x3efEba5D4B05b947df4A95D24C6671baDaAD1fc9"
-MINER_BALANCE = 100
+MINER_ADDRESS = "0x6ed8Af7e73B7f5BA781Fe3046c0aa43DdB380467"
+MINER_BALANCE = 1000
 
 OWNER_CONTRACT = Contract(
     name="Owner",
@@ -27,7 +27,7 @@ REWARD_DISTRIBUTOR_CONTRACT = Contract(
 FAUCET_CONTRACT = Contract(
     name="Faucet",
     address="0x0000000000000000000000000000000000000050",
-    balance=10_000_000  # 10M
+    balance=1_298_978_680  # 1.29897868 B
 )
 WAQF_CONTRACT = Contract(
     name="Waqf",
@@ -43,7 +43,8 @@ def generate_genesis():
     genesis = GenesisGenerator(MINER_ADDRESS, miner_balance=MINER_BALANCE)
 
     # TODO: Add SuperOwner Owner and Miner
-    genesis.add_account(OWNER_ADDRESS, 100)
+    genesis.add_account(OWNER_ADDRESS, 1000)
+    genesis.add_account(SUPER_OWNER_ADDRESS, 1000)
 
     # Add contracts
     OWNER_CONTRACT.set_value("owner", OWNER_ADDRESS)
@@ -55,7 +56,7 @@ def generate_genesis():
     WAC_CONTRACT.set_mapping_value("status", OWNER_ADDRESS, 1)
     WAC_CONTRACT.set_mapping_value("status", MINER_ADDRESS, 1)
     WAC_CONTRACT.set_mapping_value("status", SUPER_OWNER_ADDRESS, 1)
-    WAC_CONTRACT.set_value("whitelistCount", 2)
+    WAC_CONTRACT.set_value("whitelistCount", 3)
     genesis.add_contract(WAC_CONTRACT)
 
     PAC_CONTRACT.set_value("owner", OWNER_CONTRACT.address)
